@@ -2,8 +2,8 @@
 #show: arkheion.with(
   title: "Exposé - YALR",
   authors: (
-    (name: "Richard Bihlmeier", email: "richard.bihlmeier@hs-duesseldorf.de", affiliation: "HSD"),
-    (name: "Jannis Bollien", email: "jannis.bollien@study.hs-duesseldorf.de", affiliation: "HSD"),
+    (name: "Richard Bihlmeier", email: "richard.bihlmeier@hs-duesseldorf.de", affiliation: "Hochschule Düsseldorf"),
+    (name: "Jannis Bollien", email: "jannis.bollien@study.hs-duesseldorf.de", affiliation: "Hochschule Düsseldorf"),
   ),
 //   abstract: "In diesem Exposé ",
   date: "12. Oktober 2025",
@@ -12,7 +12,7 @@
 #set heading(numbering: none)
 
 = Projektbeschreibung
-Im Rahmen des Projekts soll ein Programm entwickelt werden, das stumme Videoaufnahmen von Personen in Text überführt. Zu diesem Zweck wird ein bereits bestehendes neuronales Netz *AV-HuBERT (Audio-Visual Hidden Unit BERT* verwendet. Das Modell ist darauf spezialisiert, audiovisuelle Informationen zu verarbeiten und kann auch ohne Tonspur visuelle Bewegungen und Mundformen analysieren. Das Ziel des Projekts besteht darin, das Netz so zu implementieren, dass aus stummen Videosequenzen automatisch eine sinnvolle textuelle Darstellung generiert werden kann. 
+Im Rahmen des Projekts soll ein Programm entwickelt werden, das stumme Videoaufnahmen von Personen in Text überführt. Zu diesem Zweck wird ein bereits bestehendes neuronales Netz *AV-HuBERT (Audio-Visual Hidden Unit BERT)* verwendet. Das Modell ist darauf spezialisiert, audiovisuelle Informationen zu verarbeiten und kann auch ohne Tonspur visuelle Bewegungen und Mundformen analysieren. Das Ziel des Projekts besteht darin, das Netz so zu implementieren, dass aus stummen Videosequenzen automatisch eine sinnvolle textuelle Darstellung generiert werden kann. 
 
 = Motivation
 Die Realisierung dieses Projekts ist aus mehreren Gründen von Interesse. Ein System, das stumme Videoaufnahmen in Text überträgt, kann in verschiedenen Anwendungsfeldern von Nutzen sein. Für Menschen mit auditiven oder sprachlichen Beeinträchtigungen könnte diese Technologie einen barrierefreien Zugang zu visuellen Inhalten ermöglichen. Da nicht jedes Medium automatisch mit Untertiteln ausgestattet ist, sind betroffene Personen häufig von bestimmten Informations- und Unterhaltungsangeboten ausgeschlossen. Das vorgesehene Tool dient der Unterstützung durch die Auswertung von Aufnahmen, in welchen der Mund der sprechenden Person sichtbar ist, mit dem Ziel der Textgenerierung.
