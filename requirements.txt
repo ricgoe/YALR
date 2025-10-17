@@ -1,0 +1,10 @@
+dlib==20.0.0
+fairseq @ git+https://github.com/facebookresearch/fairseq.git@afc77bdf4bb51453ce76f1572ef2ee6ddcda8eeb
+numpy==1.23.5
+omegaconf==2.0.6
+python_speech_features==0.6
+scikit-image==0.21.0
+scikit-video==1.1.11
+scipy==1.10.1
+sentencepiece==0.2.0
+opencv-python==4.6.0.66
