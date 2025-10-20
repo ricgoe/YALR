@@ -8,3 +8,5 @@ scikit-video==1.1.11
 scipy==1.10.1
 sentencepiece==0.2.0
 opencv-python==4.6.0.66
+uvicorn==0.37.0
+fastapi==0.119.0
