@@ -58,7 +58,7 @@ class Preprocessor:
             # return frame, landmark
             landmarks.append(landmark)
         preprocessed_landmarks = landmarks_interpolate(landmarks)
-        crops = crop_patch(video_path, preprocessed_landmarks, self.mean_face_landmarks, self.stablePoints, self.STD_SIZE,
+        crops = crop_patch(frames[..., ::-1], preprocessed_landmarks, self.mean_face_landmarks, self.stablePoints, self.STD_SIZE,
                         window_margin=12, start_idx=48, stop_idx=68, crop_height=96, crop_width=96)
         return crops
 

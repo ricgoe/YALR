@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { notify } from "@kyvg/vue3-notification";
 
 const emit = defineEmits<{
   (event: 'uploaded', payload: unknown): void
@@ -103,29 +104,36 @@ async function handleStop() {
   if (playbackRef.value) {
     playbackRef.value.src = recordedUrl.value
   }
-  videoBlob.value = blob 
+  videoBlob.value = blob
 }
 function stopStream() {
   mediaStream.value?.getTracks().forEach((track) => track.stop())
   mediaStream.value = null
 }
-const base = import.meta.env.DEV ? "http://10.40.25.19:8000" : "";
+const base = import.meta.env.DEV ? "http://10.50.60.153:8000" : "";
 
 async function uploadRecording() {
-  const response = await fetch(`${base}/upload-video`, {
+  try {
+    const response = await fetch(`${base}/upload-video`, {
     method: "POST",
     headers: {
       "Content-Type": videoBlob.value?.type || "video/webm",
     },
     body: videoBlob.value,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upload failed: ${response.statusText}`);
+    });
+    const r = await response.json()
+    notify({
+        type: "success",
+        text: r.message,
+      });
+    hypo.value = r.message;
+  } catch {
+    notify({
+      type: "error",
+      title: "Corrupted WEBM",
+      text: "Could not properly read webm",
+    });
   }
-
-  const result = await response.json();
-  hypo.value = result.message;
 }
 
 watch(mediaStream, (stream) => {
