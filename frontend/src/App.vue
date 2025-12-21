@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Notifications } from '@kyvg/vue3-notification';
 import VideoRecorder from './components/VideoRecorder.vue';
 </script>
 
@@ -12,6 +13,7 @@ import VideoRecorder from './components/VideoRecorder.vue';
     </a>
   </div>
   <VideoRecorder/>
+  <notifications />
 </template>
 
 <style scoped>
