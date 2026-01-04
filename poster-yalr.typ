@@ -5,6 +5,11 @@
 #let box-spacing = 0.7em
 #set columns(gutter: box-spacing)
 #set block(spacing: box-spacing)
+#show figure.caption: it => [
+  Abbildung
+  #context it.counter.display(it.numbering):
+  #emph(it.body)
+]
 
 #let mainColor = rgb("#500045")
 #let secColor = rgb("#5f0000")
@@ -78,7 +83,7 @@
   // ]
 
   #pop.column-box(heading: [CV/ML-Pipeline ])[
-    Das Modell erfordert *standardisierte* Eingangsgrößen (geglätteter Auschnitt der Mund-Region \[96x96 px\]).
+    - *Anforderung des Modells*: standardisierte Eingangsgrößen #linebreak() (geglätteter Auschnitt der Mund-Region \[96x96 px\]).
     1. *ROI-Extraktion:* Mund-Crop mit Hilfe von Gesichtslandmarken @mediapipe_guide.
     #v(5pt)
     #figure(caption: [
@@ -123,14 +128,14 @@
 
   #colbreak()
   #pop.column-box(heading: "Methodik")[
-    - Erhebung eines eigenen Datensatzes mit drei Sprecher:innen 
+    - Erhebung eines eigenen Datensatzes mit drei Sprecher:innen
       - je 175 Sätze aus dem alltäglichen Gebrauch @sentences_ds
     - Überprüfung des Modells auf Einsatz in Realszenarien
     - Modell: AV-HuBERT Large (pretrained, LRS3-433h+Self-Training) @avpresentation
     #v(4pt)
     #figure(
     caption: [
-    Auswertung des Modells mittels Wort- und Zeichenerrorraten [%] mit #strong("S")ubstitutionen, #strong("D")eletionen, #strong("I")nsertionen und Referenzlänge (*N*).
+    Vorhersageauswertung mittels Wort- und Zeichenfehlerraten [%] mit #strong("S")ubstitutionen, #strong("D")eletionen, #strong("I")nsertionen und Referenzlänge (*N*).
     ])[
     #stack(dir: ltr, spacing: 50pt,
       $ text("WER/ CER") = (S + D + I) / N $
@@ -138,13 +143,13 @@
 ]
   ]
 
-  #let wer_cer = read("assets/wer_cer.svg").replace("__c1__", mainColor.to-hex()).replace("__c2__", secColor.to-hex())
+  #let wer_cer = bytes(read("assets/wer_cer.svg").replace("__c1__", mainColor.to-hex()).replace("__c2__", secColor.to-hex()))
   #pop.column-box(heading: "Ergebnisse")[
     // - *Status:* Quantitative Auswertung *noch ausstehend*
     #figure(caption: [
       Vergleich von WER und CER für den eigenen Datensatz einschließlich Durchschnitt; Baseline nach @avpresentation.
     ])[
-      #image(bytes(wer_cer), height: 330pt)
+      #image(wer_cer, height: 320pt)
     ]
   ]
 
@@ -169,7 +174,7 @@
     - @avpresentation zeigt, dass eine Hinzunahme auditiver Informationen auf dem verwendeten Datensatz @lrs3 die WER deutlich reduziert (1.3 % vs. 26.9 %).
     - Replikation ähnlicher Verbesserungen für eigenen Datensatz noch ausstehend.
 
-      
+
   ]
 
   #colbreak()
