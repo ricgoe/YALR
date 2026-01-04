@@ -64,11 +64,11 @@
 )
 
 #columns(3,[
-  #pop.column-box(heading: "Motivation / Problem")[
-    - *Barrierefreiheit:* Unterstützung für gehörlose / schwerhörige Menschen
-    - *Audioausfälle:* robust, wenn Audio fehlt, verrauscht oder gestört ist
-    - *Sicherheitstechnik:* z. B. Einsatz-/Überwachungsszenarien ohne verwertbares Audio
-    - *Ziel:* Satz-Level Lipreading: *Video (Mundbewegungen) #sym.arrow.r Text*
+  #pop.column-box(heading: "Motivation")[
+    - *Barrierefreiheit:* Unterstützung für Menschen mit auditiven oder sprachlichen Beeinträchtigungen.
+    - *Audioausfälle:* Rekonstruktion gesprochener Inhalte bei fehlender, gestörter oder stark verrauschter Tonspur.
+    - *Ethische Bedenken:* Einsatz in Überwachungsszenarien.
+    - *Ziel:* Evaluation eines vortrainierten AV-HuBERT-Modells für rein visuelle Satz-Spracherkennung im Real-World-Setting.
   ]
 
   // #pop.column-box(heading: "Ansatz")[
@@ -77,24 +77,24 @@
   //   - Fokus auf stabile Inferenz und Demo-Tauglichkeit
   // ]
 
-  #pop.column-box(heading: [Pipeline (Video #sym.arrow.r Mund-ROI #sym.arrow.r Text)])[
-    Das Modell erwartet *standartisierte* Eingangsgrößen. (geglätteter Auschnitt der Mund-Region \[96x96 px\])
-    1. *ROI-Extraktion:* Mund-Crop aus Landmarks mit *MediaPipe* @mediapipe_guide @mediapipe_pypi
+  #pop.column-box(heading: [CV/ML-Pipeline ])[
+    Das Modell erfordert *standardisierte* Eingangsgrößen (geglätteter Auschnitt der Mund-Region \[96x96 px\]).
+    1. *ROI-Extraktion:* Mund-Crop mit Hilfe von Gesichtslandmarken @mediapipe_guide.
     #v(5pt)
     #figure(caption: [
-      *Augenecken* & *Nasenspitze* bilden T-Zone, mittels der Verkrümmung und Auschnitt berechnet werden 
+      Augenwinkel und Nasenspitze definieren T-Zone, aus der Verkrümmung und Ausschnitt der Mundregion berechnet werden.
     ])[
       #image("assets/landmarks.png", height: 300pt, width: 400pt)
     ]
-    #v(5pt)
-    2. *Vorverarbeitung:* Skalierung / Normalisierung der Crops, Sequenzaufbereitung
-    3. *Inference:* AV-HuBERT im *evaluation mode*
-    4. *Output:* Satzweise Textvorhersage (aktuell Englisch, wie Pretraining)
+    #v(8pt)
+    2. *Sequenzaufbereitung:* Skalierung und Normalisierung der Crops.
+    3. *Modellanwendung:* Inferenz mit dem vortrainierten AV-HuBERT-Modell.
+    4. *Ausgabe:* Generierte Satztranskriptionen.
     #let arrow = bytes(read("assets/arrow.svg").replace("__c1__", mainColor.to-hex()))
     #let nn = bytes(read("assets/nn.svg").replace("__c1__", mainColor.to-hex()))
     #let paps = bytes(read("assets/paper.svg").replace("__c1__", mainColor.to-hex()))
     #figure(caption: [
-        Pipeline (Datensatz für Beispiele: LRS3-TED @lrs3
+        Exemplarische CV/ML-Pipeline (Beispielaufnahmen aus @lrs3).
       ])[
         #let h = 160pt
         #let ah = 80pt
@@ -123,41 +123,40 @@
 
   #colbreak()
   #pop.column-box(heading: "Methodik")[
-    - Eigenen Datensatz mit 3 Sprecher je 175 Sätze
-      - Sätze aus dem alltäglichen Gebrauch
+    - Erhebung eines eigenen Datensatzes mit drei Sprecher:innen 
+      - je 175 Sätze aus dem alltäglichen Gebrauch @sentences_ds
     - Überprüfung des Modells auf Einsatz in Realszenarien
-    - Modell: AV-HuBERT Large (pretrained, LRS3-433h) @avpresentation
+    - Modell: AV-HuBERT Large (pretrained, LRS3-433h+Self-Training) @avpresentation
     #v(4pt)
-    #figure(caption: "Auswertung des Modells durch Error Rates [%]")[
-      #stack(dir: ltr, spacing: 50pt,
-        $ text("WER") = (S + D + I) / N $,
-        $ text("CER") = (S + D + I) / N $
-      )
-    ]
+    #figure(
+    caption: [
+    Auswertung des Modells mittels Wort- und Zeichenerrorraten [%] mit #strong("S")ubstitutionen, #strong("D")eletionen, #strong("I")nsertionen und Referenzlänge (*N*).
+    ])[
+    #stack(dir: ltr, spacing: 50pt,
+      $ text("WER/ CER") = (S + D + I) / N $
+    )
+]
   ]
 
   #let wer_cer = read("assets/wer_cer.svg").replace("__c1__", mainColor.to-hex()).replace("__c2__", secColor.to-hex())
   #pop.column-box(heading: "Ergebnisse")[
-    - *Task:* Satz-Level Lipreading (Video #sym.arrow.r Text)
-    - *Metrik:* Word Error Rate (WER) & Character Error Rate (CER)
-    
-
     // - *Status:* Quantitative Auswertung *noch ausstehend*
     #figure(caption: [
-      Auswertung //@wiki:File:Treron_vernans_male_-_Kent_Ridge_Park.jpg
+      Vergleich von WER und CER für den eigenen Datensatz einschließlich Durchschnitt; Baseline nach @avpresentation.
     ])[
       #image(bytes(wer_cer), height: 330pt)
     ]
   ]
 
-  #pop.column-box(heading: "Fehleranalyse")[
+  #pop.column-box(heading: "Diskussion & Ausblick")[
     Typische Fehlerquellen:
-    - *Viseme-Ambiguität* (ähnliche Lippenformen #sym.arrow.r verschiedene Laute)
-    - *Pose / Bewegungsunschärfe / Beleuchtung*
+    - *Viseme Ambiguität* (ähnliche Lippenformen #sym.arrow.r verschiedene Laute) @Bear_2017
+    - *nicht-labiale Laute* wie *glottale Laute* nicht ohne Ton trennbar @lindner
+    - *Profilaufnahme / Bewegungsunschärfe / Beleuchtung*
     - *Okklusion* (Hand, Bart, Mikrofon, Maske)
 
     #figure(caption: [
-      Auswertung //@wiki:File:Treron_vernans_male_-_Kent_Ridge_Park.jpg
+      Beispielhafte Darstellung der Viseme Ambiguität.
     ])[
       #stack(dir: ltr, spacing: 40pt,
         ..range(1, 4).map(i =>
@@ -167,28 +166,29 @@
     ]
 
     *Ausblick*:
-    - *nicht-labialen Lauten* wie *glottale Laute* nicht ohne Ton trennbar @lindner
-    - kaum Gefahr vor "externer" Überwachung durch KI-gestützte Kamerasysteme
-      - allerdings Deutlich Bessere ergebnisse mit Ton+Bild @avpresentation
-      #sym.arrow.r *WER*: 26.9%
+    - @avpresentation zeigt, dass eine Hinzunahme auditiver Informationen auf dem verwendeten Datensatz @lrs3 die WER deutlich reduziert (1.3 % vs. 26.9 %).
+    - Replikation ähnlicher Verbesserungen für eigenen Datensatz noch ausstehend.
+
       
   ]
 
   #colbreak()
 
-  #pop.column-box(heading: "Contribution")[
-    - Einsatz von *AV-HuBERT (Large, pretrained)* @avpresentation
-    - Pretrained Checkpoint: *LRS3-433h (EN)* + VoxCeleb2 (EN)
-    - *Live-Demo im Saal* (Video #sym.arrow.r Satz-Transkription)
+  #pop.column-box(heading: "Webbasierter Demonstrator")[
+    - Webbasierter Demonstrator zur satzweisen visuellen Spracherkennung
+    - Backend-Integration eines vortrainierten AV-HuBERT-Large-Modells
+    - Pretrained Checkpoint: LRS3-433h (EN) + VoxCeleb2 (EN)
+    - Live-Videoeingabe mit automatischer Satztranskription
+    - Hashbasiertes Caching vorverarbeiteter Video-Crops zur Beschleunigung der Verarbeitung
     #figure(caption: [
         YALR-WebTool //@wiki:File:Treron_vernans_male_-_Kent_Ridge_Park.jpg
       ])[
-        #image("assets/yalr-tool.png", height: 716pt)
+        #image("assets/yalr-tool.png", height: 630pt)
       ]
   ]
 
   #pop.column-box(heading: "Links / Referenzen")[
-    #bibliography("bibliography.bib")
+    #bibliography("tbib.bib")
   ]
 
 ])
