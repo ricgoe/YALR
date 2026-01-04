@@ -181,14 +181,14 @@
     - Live-Videoeingabe mit automatischer Satztranskription
     - Hashbasiertes Caching vorverarbeiteter Video-Crops zur Beschleunigung der Verarbeitung
     #figure(caption: [
-        YALR-WebTool //@wiki:File:Treron_vernans_male_-_Kent_Ridge_Park.jpg
+        YALR-WebTool. //@wiki:File:Treron_vernans_male_-_Kent_Ridge_Park.jpg
       ])[
         #image("assets/yalr-tool.png", height: 630pt)
       ]
   ]
 
   #pop.column-box(heading: "Links / Referenzen")[
-    #bibliography("tbib.bib")
+    #bibliography("bibliography.bib")
   ]
 
 ])
