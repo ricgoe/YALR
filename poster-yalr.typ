@@ -1,17 +1,19 @@
 #import "@preview/peace-of-posters:0.5.6" as pop
+#import "@preview/cades:0.3.1": qr-code
 
+#set text(lang: "de")
 #set page("a0", margin: 0.8cm, flipped: true)
 #set text(size: 30pt)
 #let box-spacing = 0.7em
 #set columns(gutter: box-spacing)
 #set block(spacing: box-spacing)
 #show figure.caption: it => [
-  Abbildung
+  #it.supplement
   #context it.counter.display(it.numbering):
   #emph(it.body)
 ]
 
-#let mainColor = rgb("#500045")
+#let mainColor = rgb("#4f0050")
 #let secColor = rgb("#5f0000")
 #let color = gradient.linear(mainColor,secColor)
 #let radius = 16pt
@@ -58,14 +60,24 @@
 #let logo_svg = bytes(read("assets/lips.svg").replace("__c1__", secColor.to-hex()))
 #pop.title-box(
   "YALR - Yet Another Lip Reader",
-  authors: "Richard Bihlmeier, Jannis Bollien",
+  authors: [#v(-30pt) Richard Bihlmeier, Jannis Bollien],
   institutes: "ZDD @ HSD",
   keywords: "Lipreading · AV-HuBERT · MediaPipe · LRS2",
-  logo: rotate(-20deg, circle(align(horizon, image(logo_svg)), fill: white, radius: 155pt, inset: -10pt)),
-  title-size: 90pt,
-  authors-size: 50pt,
-  institutes-size: 50pt,
-  keywords-size: 30pt
+  subtitle: [#v(-55pt) #text(emph("Visuelles Lippenlesen mit KI"), font: "Libertinus Serif")],
+  logo: [
+    #align(horizon,
+      stack(dir: ltr, spacing: 30pt,
+        image("assets/HSD-ZDD.png", width: 800pt),
+        qr-code("https://github.com/ricgoe/yalr", background: rgb(0, 0, 0, 0), color: white, height: 170pt),
+        rotate(-20deg, circle(align(horizon, image(logo_svg)), fill: white, radius: 100pt, inset: -10pt)),
+      )
+    )
+  ],
+  title-size: 70pt,
+  authors-size: 40pt,
+  institutes-size: 40pt,
+  keywords-size: 30pt,
+  subtitle-size: 50pt
 )
 
 #columns(3,[
