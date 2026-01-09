@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
     </div>
     <div class="controls">
       <button type="button" @click="startRecording" :disabled="!canStartRecording">
-        {{ isInitializing ? 'Initializing…' : 'Start Recording' }}
+        {{ isInitializing ? 'Initializing…' : 'Record' }}
       </button>
       <button type="button" @click="stopRecording" :disabled="!isRecording">
         Stop Recording
@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
       >
         Reset
       </button>
-      <button type="button" @click="uploadRecording" >upload</button>
+      <button type="button" @click="uploadRecording" >Read Lips</button>
     </div>
     <p v-if="errorMessage" class="message error">{{ errorMessage }}</p>
     <p v-if="isUploading" class="message">Uploading…</p>
@@ -218,23 +218,23 @@ onBeforeUnmount(() => {
 .controls {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  justify-content: center;
 }
 .controls button {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 0.375rem;
-  background: #1f7aec;
+  background: #35002e;
   color: #fff;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 .controls button:disabled {
-  background: #9bbcee;
+  background: #b6aeb4;
   cursor: not-allowed;
 }
 .controls button:not(:disabled):hover {
-  background: #155bbf;
+  background: #5c525b;
 }
 .message {
   margin-top: 0.5rem;

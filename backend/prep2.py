@@ -1,3 +1,4 @@
+import sys; sys.argv.extend(["",""])
 import cv2
 import numpy as np
 import skvideo.io
@@ -58,7 +59,7 @@ class Preprocessor:
         self.prev_landmarks = smoothed
         return smoothed
 
-    def align_and_crop1(self, frame, lm):
+    def align_and_crop(self, frame, lm):
         # Affine alignment
         src = lm[self.STABLE_IDXS].astype(np.float32)
         M = cv2.getAffineTransform(src, self.TARGET)
@@ -82,7 +83,7 @@ class Preprocessor:
 
         return crop
 
-    def align_and_crop(self, frame, lm):
+    def align_and_crop2(self, frame, lm):
         """
         Option 2: rotate by eye line only, then crop mouth.
         No affine / no similarity transform.
@@ -126,7 +127,6 @@ class Preprocessor:
         crop = cv2.resize(crop, self.crop_size)
         return crop
 
-
     def process_video(self, input_path: Path, output_path: Path):
         meta = skvideo.io.ffprobe(str(input_path))
         num, den = map(int, meta["video"]["@avg_frame_rate"].split("/"))
@@ -135,9 +135,9 @@ class Preprocessor:
         else:
             fps = int(num / den)
         frames = skvideo.io.vread(str(input_path), inputdict={'-r' : str(fps)})
-        skvideo.io.vwrite("test.mp4", frames)
+        # skvideo.io.vwrite("test.mp4", frames)
         mouth_crops = []
-        print(len(frames))
+        # print(len(frames))
         for frame in tqdm(frames, desc="Processing"):
             lm = self.detect_landmarks(frame)
             if lm is None:
@@ -148,6 +148,6 @@ class Preprocessor:
             lm = self.smooth(lm)
             crop = self.align_and_crop(frame, lm)
             mouth_crops.append(crop)
-        print(len(mouth_crops))
-        skvideo.io.vwrite(str(output_path), np.stack(mouth_crops))
+        # print(len(mouth_crops))
+        skvideo.io.vwrite(str(output_path), np.stack(mouth_crops)) # maybe just use from av_hubert.avhubert.preparation.align_mouth import write_video_ffmpeg
         return np.stack(mouth_crops)
