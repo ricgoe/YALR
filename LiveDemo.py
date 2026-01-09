@@ -136,13 +136,14 @@ class LiveDemo:
                 ok, frame = cap.read()
                 if not ok or frame is None:
                     continue
+                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
                 # cv2.imshow("LiveDemo", frame)
                 lm = self.detect_landmarks(frame[...,::-1])
                 lm = self.last_lm if lm is None else self.smooth(lm)
                 crop = self.align_and_crop(frame, lm)
                 self.last_lm = lm
                 cv2.imshow("LiveDemo Crop", crop)
-                cv2.imshow("LiveDemo Frame", cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE))
+                cv2.imshow("LiveDemo Frame", frame)
                 if cv2.waitKey(1) & 0xFF in [ord("q"), 27]:
                     break
         finally:
