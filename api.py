@@ -50,7 +50,7 @@ async def upload_video(request: Request):
     if not output.exists(): #Remove for production?
         crops = prep.process_video(str(input), str(output))
     pred=LipPredictor("data/misc/self_large_vox_433h.pt")
-    hypo=pred.predict(str(output), "av_hubert/avhubert")
+    hypo=pred.predict([str(output)], "av_hubert/avhubert")
     return {"message": hypo}
     # return { "message": "Deine Fette Mutter"}
 

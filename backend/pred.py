@@ -12,28 +12,31 @@ class LipPredictor:
         self.models, self.saved_cfg, self.task = checkpoint_utils.load_model_ensemble_and_task([ckpt_path])
         self.models = [model.eval().cuda() for model in self.models]
         self.saved_cfg.task.modalities = modalities
-    
-    
-    def make_dummy_set(self, video_path):
-        vid = cv2.VideoCapture(video_path)
-        num_frames = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-        fps = int(vid.get(cv2.CAP_PROP_FPS))
-        data_dir = tempfile.mkdtemp()
-        tsv_cont = ["/\n", f"test-0\t{video_path}\t{None}\t{num_frames}\t{int(16_000*num_frames/fps)}\n"]
-        label_cont = ["DUMMY\n"]
+
+
+    def make_dummy_set(self, video_paths: list[str]):
+        tsv_cont = ["/\n"]
+        for video_path in video_paths:
+            vid = cv2.VideoCapture(video_path)
+            num_frames = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = int(vid.get(cv2.CAP_PROP_FPS))
+            data_dir = tempfile.mkdtemp()
+            tsv_cont.append(f"test-0\t{video_path}\t{None}\t{num_frames}\t{int(16_000*num_frames/fps)}\n")
+        length = len(tsv_cont)-1
+        label_cont = ["DUMMY\n"]*length
         with open(f"{data_dir}/test.tsv", "w") as fo:
             fo.write("".join(tsv_cont))
         with open(f"{data_dir}/test.wrd", "w") as fo:
             fo.write("".join(label_cont))
-        
+
         self.saved_cfg.task.data = data_dir
         self.saved_cfg.task.label_dir = data_dir
         return
-    
-    
-    def predict(self, video_path, user_dir):
-        self.make_dummy_set(video_path)
-        
+
+
+    def predict(self, video_paths, user_dir):
+        self.make_dummy_set(video_paths)
+
         # utils.import_user_module(Namespace(user_dir=user_dir))
         task = tasks.setup_task(self.saved_cfg.task)
         task.load_dataset(self.gen_subset, task_cfg=self.saved_cfg.task)
@@ -46,7 +49,7 @@ class LipPredictor:
         hypo = hypos[0][0]['tokens'].int().cpu()
         hypo = self.decode_fn(hypo, task, generator)
         return hypo
-    
+
     def decode_fn(self, x, task, generator):
             dictionary = task.target_dictionary
             symbols_ignore = generator.symbols_to_strip_from_output
