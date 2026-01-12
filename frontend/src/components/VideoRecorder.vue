@@ -114,6 +114,7 @@ const base = import.meta.env.DEV ? "http://10.50.60.153:8000" : "";
 
 async function uploadRecording() {
   try {
+    isUploading.value = true
     const response = await fetch(`${base}/upload-video`, {
     method: "POST",
     headers: {
@@ -133,6 +134,8 @@ async function uploadRecording() {
       title: "Corrupted WEBM",
       text: "Could not properly read webm",
     });
+  } finally {
+    isUploading.value = false
   }
 }
 
@@ -247,5 +250,9 @@ onBeforeUnmount(() => {
   display: inline-block;
   margin-top: 0.5rem;
   color: #1f7aec;
+}
+
+.spinner{
+
 }
 </style>
