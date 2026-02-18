@@ -110,7 +110,7 @@ function stopStream() {
   mediaStream.value?.getTracks().forEach((track) => track.stop())
   mediaStream.value = null
 }
-const base = import.meta.env.DEV ? "http://10.50.60.153:8000" : "";
+const base = import.meta.env.DEV ? "http://127.0.0.1:8000" : "";
 
 async function uploadRecording() {
   try {

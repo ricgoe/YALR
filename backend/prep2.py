@@ -1,4 +1,4 @@
-import sys; sys.argv.extend(["",""]); import numpy as np; np.float = float
+import sys; sys.argv.extend(["",""]); import numpy as np; np.float = float; np.int = int; import av_hubert.avhubert
 import cv2
 import numpy as np
 import skvideo.io
@@ -7,6 +7,7 @@ from pathlib import Path
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
 
 
 class Preprocessor:

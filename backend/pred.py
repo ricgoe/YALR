@@ -4,6 +4,7 @@ from argparse import Namespace
 from fairseq import checkpoint_utils, tasks, utils
 from fairseq.dataclass.configs import GenerationConfig
 
+
 class LipPredictor:
     def __init__(self, ckpt_path):
         modalities = ["video"]

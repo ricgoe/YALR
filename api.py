@@ -5,6 +5,7 @@ from backend.prep2 import Preprocessor
 from backend.pred import LipPredictor
 from pathlib import Path
 from hashlib import sha256
+import subprocess
 
 
 app = FastAPI()
@@ -15,6 +16,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+model_path = Path("data/misc/self_large_vox_433h.pt")
+if not model_path.exists():
+    print("By using this Model, you agree to the terms of this License https://raw.githubusercontent.com/facebookresearch/av_hubert/refs/heads/main/LICENSE")
+    input("Press Enter to agree>> ")
+    result = subprocess.run(["curl","-L","-o",str(model_path),
+        "https://dl.fbaipublicfiles.com/avhubert/model/lrs3_vox/vsr/self_large_vox_433h.pt"
+    ], check=True)
+    if result.returncode != 0 or not model_path.exists():
+        print(f"Failed to download model. Navigate to https://facebookresearch.github.io/av_hubert/ and download 'AV-HuBERT Large + Self-Training LRS3 + VoxCeleb2 (En) LRS3-433h'.\nPlace at {str(model_path)}")
+        exit()
 
 # class LipReading(BaseModel):
 #     lipreading: str
@@ -45,7 +56,7 @@ async def upload_video(request: Request):
     prep = Preprocessor()
     if not output.exists(): #Remove for production?
         crops = prep.process_video(str(input), str(output))
-    pred=LipPredictor("data/misc/self_large_vox_433h.pt")
+    pred=LipPredictor(str(model_path))
     hypo=pred.predict([str(output)], "av_hubert/avhubert")
     return {"message": hypo}
     # return { "message": "Deine Fette Mutter"}
