@@ -1,4 +1,4 @@
-import sys; sys.argv.extend(["",""])
+import sys; sys.argv.extend(["",""]); import numpy as np; np.float = float
 import cv2
 import numpy as np
 import skvideo.io

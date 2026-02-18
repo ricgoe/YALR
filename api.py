@@ -1,13 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from backend.prep2 import Preprocessor
 from backend.pred import LipPredictor
-from av_hubert.avhubert.preparation.align_mouth import write_video_ffmpeg
 from pathlib import Path
-from uuid import uuid4 as uuid
-from io import BytesIO
 from hashlib import sha256
 
 
