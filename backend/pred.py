@@ -1,6 +1,5 @@
 import cv2
 import tempfile
-from argparse import Namespace
 from fairseq import checkpoint_utils, tasks, utils
 from fairseq.dataclass.configs import GenerationConfig
 

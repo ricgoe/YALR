@@ -1,11 +1,14 @@
+import backend.patches #NEEDED: Custom patches for AV-HuBERT and fairseq
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from backend.prep2 import Preprocessor
+from backend.prep import Preprocessor
 from backend.pred import LipPredictor
 from pathlib import Path
 from hashlib import sha256
 import subprocess
+
 
 
 app = FastAPI()

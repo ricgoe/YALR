@@ -58,12 +58,14 @@ pydantic==2.12.5
 pydantic_core==2.41.5
 pyparsing==3.3.2
 python-dateutil==2.9.0.post0
+python_speech_features==0.6
 PyYAML==6.0.3
 regex==2026.1.15
 sacrebleu==2.6.0
 scikit-image==0.25.2
 scikit-video==1.1.11
 scipy==1.15.3
+sentencepiece==0.2.0
 six==1.17.0
 sounddevice==0.5.5
 starlette==0.52.1

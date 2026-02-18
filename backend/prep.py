@@ -1,80 +1,153 @@
-import sys; sys.argv.extend(["",""])
 import cv2
 import numpy as np
-import skvideo
 import skvideo.io
 from tqdm import tqdm
-from av_hubert.avhubert.preparation.align_mouth import landmarks_interpolate, crop_patch, write_video_ffmpeg
 from pathlib import Path
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-from backend.mp2dlib import convert_landmarks_mediapipe_to_dlib
+
 
 
 class Preprocessor:
+    """
+    MediaPipe-based mouth cropper with temporal smoothing.
+    """
 
-    def __init__(self, mean_face_path: str, std_size: tuple[int] = (256, 256)):
-        self.STD_SIZE = std_size
-        self.mp_baseoptions = python.BaseOptions(model_asset_path='data/misc/face_landmarker.task')
-        self.mp_options = vision.FaceLandmarkerOptions(base_options=self.mp_baseoptions,
-                                       output_face_blendshapes=True,
-                                       output_facial_transformation_matrixes=True,
-                                       num_faces=1)
+    MOUTH_IDXS = [
+        61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291,
+        78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308
+    ]
+    STABLE_IDXS = [1, 133, 362]
+    TARGET = np.float32([
+        [48, 52],   # nose
+        [34, 40],   # left eye
+        [62, 40],   # right eye
+    ])
 
-        self.detector = vision.FaceLandmarker.create_from_options(self.mp_options)
-        self.stablePoints = [33, 36, 39, 42, 45] # tip of nose + inner and outer corner of both eyes
-        self.mean_face_landmarks = np.load(mean_face_path)
+    def __init__(self, model_path="data/misc/face_landmarker.task", crop_size=(96, 96), ema_alpha=0.85):
+        self.crop_size = crop_size
+        self.alpha = ema_alpha
+        self.prev_landmarks = None
 
-    def detect_landmark(self, frame):
-        h, w, _ = frame.shape
-
-        mp_image = mp.Image(
-            image_format=mp.ImageFormat.SRGB,
-            data=frame
+        base = python.BaseOptions(model_asset_path=model_path)
+        opts = vision.FaceLandmarkerOptions(
+            base_options=base,
+            num_faces=1,
+            output_face_blendshapes=False,
+            output_facial_transformation_matrixes=False,
         )
+        self.detector = vision.FaceLandmarker.create_from_options(opts)
 
-        result = self.detector.detect(mp_image)
+    def detect_landmarks(self, frame):
+        h, w, _ = frame.shape
+        mp_img = mp.Image(mp.ImageFormat.SRGB, frame)
+        res = self.detector.detect(mp_img)
 
-        if not result.face_landmarks:
+        if not res.face_landmarks:
             return None
 
-        lm = result.face_landmarks[0]
-        lmks_mp = np.array(
-            [[p.x * w, p.y * h] for p in lm],
-            dtype=np.float32
+        lm = res.face_landmarks[0]
+        pts = np.array([[p.x * w, p.y * h] for p in lm], dtype=np.float32)
+        return pts
+
+    def smooth(self, lm):
+        if self.prev_landmarks is None:
+            self.prev_landmarks = lm
+            return lm
+        smoothed = self.alpha * self.prev_landmarks + (1 - self.alpha) * lm
+        self.prev_landmarks = smoothed
+        return smoothed
+
+    def align_and_crop(self, frame, lm):
+        # Affine alignment
+        src = lm[self.STABLE_IDXS].astype(np.float32)
+        M = cv2.getAffineTransform(src, self.TARGET)
+        aligned = cv2.warpAffine(frame, M, self.crop_size)
+
+        # Transform landmarks
+        lm_h = np.hstack([lm, np.ones((lm.shape[0], 1), dtype=np.float32)])
+        lm_a = (M @ lm_h.T).T
+
+        mouth = lm_a[self.MOUTH_IDXS]
+        x, y, w, h = cv2.boundingRect(mouth.astype(np.int32))
+
+        pad = 8
+        x0 = max(x - pad, 0)
+        y0 = max(y - pad, 0)
+        x1 = min(x + w + pad, aligned.shape[1])
+        y1 = min(y + h + pad, aligned.shape[0])
+
+        crop = aligned[y0:y1, x0:x1]
+        crop = cv2.resize(crop, self.crop_size)
+
+        return crop
+
+    def align_and_crop2(self, frame, lm):
+        """
+        Option 2: rotate by eye line only, then crop mouth.
+        No affine / no similarity transform.
+        """
+        LEFT_EYE = 133
+        RIGHT_EYE = 362
+
+        left = lm[LEFT_EYE]
+        right = lm[RIGHT_EYE]
+        dx = right[0] - left[0]
+        dy = right[1] - left[1]
+        angle = np.degrees(np.arctan2(dy, dx))
+        center = tuple(((left + right) / 2).astype(float))
+        M = cv2.getRotationMatrix2D(center, angle, 1.0)
+        rotated = cv2.warpAffine(
+            frame,
+            M,
+            (frame.shape[1], frame.shape[0]),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_REPLICATE,
         )
+        lm_h = np.hstack([lm, np.ones((lm.shape[0], 1))])
+        lm_r = (M @ lm_h.T).T
 
-        lmks_dlib = convert_landmarks_mediapipe_to_dlib(lmks_mp)
+        mouth = lm_r[self.MOUTH_IDXS].astype(np.int32)
+        x, y, w, h = cv2.boundingRect(mouth)
 
-        return lmks_dlib.astype(np.int32)
+        pad_x = int(0.4 * w)
+        pad_y = int(0.6 * h)
 
-    def get_mouth_crops(self, video_path: Path):
-        frames = skvideo.io.vread(video_path)
-        landmarks = []
-        for frame in tqdm(frames):
-            landmark = self.detect_landmark(frame)
-            # print(landmark)
-            # return frame, landmark
-            landmarks.append(landmark)
-        preprocessed_landmarks = landmarks_interpolate(landmarks)
-        crops = crop_patch(frames[..., ::-1], preprocessed_landmarks, self.mean_face_landmarks, self.stablePoints, self.STD_SIZE,
-                        window_margin=12, start_idx=48, stop_idx=68, crop_height=96, crop_width=96)
-        return crops
+        x0 = max(x - pad_x, 0)
+        y0 = max(y - pad_y, 0)
+        x1 = min(x + w + pad_x, rotated.shape[1])
+        y1 = min(y + h + pad_y, rotated.shape[0])
 
+        crop = rotated[y0:y1, x0:x1]
 
+        if crop.size == 0:
+            return cv2.resize(frame, self.crop_size)
 
-if __name__ == "__main__":
-    pre = Preprocessor(mean_face_path="data/misc/20words_mean_face.npy")
-    crops = pre.get_mouth_crops("./data/müllero-uncut.mp4")
-    # for i, (x, y) in enumerate(landmark.astype(int)):
-        # if i in pre.stablePoints:
-            # cv2.circle(frame, (x, y), 1, (255,0,0), -1)
-    # cv2.imshow('bla', frame)
-    # cv2.waitKey(0)
+        crop = cv2.resize(crop, self.crop_size)
+        return crop
 
-    # closing all open windows
-    # cv2.destroyAllWindows()
+    def process_video(self, input_path: Path, output_path: Path):
+        meta = skvideo.io.ffprobe(str(input_path))
+        num, den = map(int, meta["video"]["@avg_frame_rate"].split("/"))
+        if den==0:
+            fps = 30
+        else:
+            fps = int(num / den)
+        frames = skvideo.io.vread(str(input_path), inputdict={'-r' : str(fps)})
+        # skvideo.io.vwrite("test.mp4", frames)
+        mouth_crops = []
+        # print(len(frames))
+        for frame in tqdm(frames, desc="Processing"):
+            lm = self.detect_landmarks(frame)
+            if lm is None:
+                if mouth_crops:
+                    mouth_crops.append(mouth_crops[-1])
+                continue
 
-    write_video_ffmpeg(crops, "./data/clip-cropped.mp4", "/usr/bin/ffmpeg")
-
+            lm = self.smooth(lm)
+            crop = self.align_and_crop(frame, lm)
+            mouth_crops.append(crop)
+        # print(len(mouth_crops))
+        skvideo.io.vwrite(str(output_path), np.stack(mouth_crops)) # maybe just use from av_hubert.avhubert.preparation.align_mouth import write_video_ffmpeg
+        return np.stack(mouth_crops)
