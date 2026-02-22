@@ -26,6 +26,7 @@ class Preprocessor:
     ])
 
     def __init__(self, model_path="data/misc/face_landmarker.task", crop_size=(96, 96), ema_alpha=0.85):
+        """Initialize the face landmarker and mouth crop configuration."""
         self.crop_size = crop_size
         self.alpha = ema_alpha
         self.prev_landmarks = None
@@ -40,6 +41,7 @@ class Preprocessor:
         self.detector = vision.FaceLandmarker.create_from_options(opts)
 
     def detect_landmarks(self, frame):
+        """Detect face landmarks and return pixel coordinates for one face."""
         h, w, _ = frame.shape
         mp_img = mp.Image(mp.ImageFormat.SRGB, frame)
         res = self.detector.detect(mp_img)
@@ -52,6 +54,7 @@ class Preprocessor:
         return pts
 
     def smooth(self, lm):
+        """Apply exponential moving average smoothing to landmark positions."""
         if self.prev_landmarks is None:
             self.prev_landmarks = lm
             return lm
@@ -60,6 +63,7 @@ class Preprocessor:
         return smoothed
 
     def align_and_crop(self, frame, lm):
+        """Affine-align a frame to stable points and return a resized mouth crop."""
         # Affine alignment
         src = lm[self.STABLE_IDXS].astype(np.float32)
         M = cv2.getAffineTransform(src, self.TARGET)
@@ -84,10 +88,7 @@ class Preprocessor:
         return crop
 
     def align_and_crop2(self, frame, lm):
-        """
-        Option 2: rotate by eye line only, then crop mouth.
-        No affine / no similarity transform.
-        """
+        """Rotate by eye-line angle and crop the mouth region without affine warp. (Option 2)"""
         LEFT_EYE = 133
         RIGHT_EYE = 362
 
@@ -128,6 +129,7 @@ class Preprocessor:
         return crop
 
     def process_video(self, input_path: Path, output_path: Path):
+        """Run landmarking and mouth-cropping on a full video and write the result."""
         meta = skvideo.io.ffprobe(str(input_path))
         num, den = map(int, meta["video"]["@avg_frame_rate"].split("/"))
         if den==0:
@@ -135,9 +137,7 @@ class Preprocessor:
         else:
             fps = int(num / den)
         frames = skvideo.io.vread(str(input_path), inputdict={'-r' : str(fps)})
-        # skvideo.io.vwrite("test.mp4", frames)
         mouth_crops = []
-        # print(len(frames))
         for frame in tqdm(frames, desc="Processing"):
             lm = self.detect_landmarks(frame)
             if lm is None:
@@ -148,6 +148,5 @@ class Preprocessor:
             lm = self.smooth(lm)
             crop = self.align_and_crop(frame, lm)
             mouth_crops.append(crop)
-        # print(len(mouth_crops))
         skvideo.io.vwrite(str(output_path), np.stack(mouth_crops)) # maybe just use from av_hubert.avhubert.preparation.align_mouth import write_video_ffmpeg
         return np.stack(mouth_crops)

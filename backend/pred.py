@@ -6,6 +6,7 @@ from fairseq.dataclass.configs import GenerationConfig
 
 class LipPredictor:
     def __init__(self, ckpt_path):
+        """Load AV-HuBERT checkpoint and initialize generation settings."""
         modalities = ["video"]
         self.gen_subset = "test"
         self.gen_cfg = GenerationConfig(beam=20)
@@ -15,6 +16,7 @@ class LipPredictor:
 
 
     def make_dummy_set(self, video_paths: list[str]):
+        """Create temporary TSV/label files describing input videos for inference. (see reference usage implementation)"""
         tsv_cont = ["/\n"]
         for video_path in video_paths:
             vid = cv2.VideoCapture(video_path)
@@ -35,9 +37,9 @@ class LipPredictor:
 
 
     def predict(self, video_paths, user_dir):
+        """Run lip-reading inference for the provided video path list."""
         self.make_dummy_set(video_paths)
 
-        # utils.import_user_module(Namespace(user_dir=user_dir))
         task = tasks.setup_task(self.saved_cfg.task)
         task.load_dataset(self.gen_subset, task_cfg=self.saved_cfg.task)
         generator = task.build_generator(self.models, self.gen_cfg)
@@ -51,6 +53,7 @@ class LipPredictor:
         return hypo
 
     def decode_fn(self, x, task, generator):
+            """Decode token IDs into text using the task label processor."""
             dictionary = task.target_dictionary
             symbols_ignore = generator.symbols_to_strip_from_output
             symbols_ignore.add(dictionary.pad())
