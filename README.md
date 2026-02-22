@@ -1,8 +1,10 @@
-# YALR - Visuelles Lippenlesen mit KI
+# YALR - Visual Lip Reading with AI
 <p align="center">
   <img width=50% alt="pipeline" src="https://github.com/user-attachments/assets/727375ba-e043-40f2-9bbe-adb1ce9d64ef" />
 </p>
-
+YALR (Yet Another Lip Reader) is a computer vision–based lip reading system for sentence-level speech recognition from visual input only.
+It combines MediaPipe-based mouth ROI extraction with a pretrained AV-HuBERT model and evaluates its applicability to real-world scenarios.
+The project explores the practical challenges of visual-only speech recognition, including viseme ambiguity, non-labial sounds, and real-world recording conditions, and includes a web-based demonstrator with video transcription.
 
 # Installation Guide
 
